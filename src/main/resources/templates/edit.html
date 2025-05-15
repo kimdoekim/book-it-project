@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인정보 수정</title>
+    <head th:replace="~{fragments/layout :: head('개인정보 수정')}">
+    </head>
+<body>
+<!-- 헤더 포함 -->
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">개인정보 수정</h5>
+                </div>
+                <div class="card-body">
+                    <!-- 알림 메시지 -->
+                    <div class="alert alert-success" th:if="${message}" th:text="${message}">
+                        정보가 성공적으로 수정되었습니다.
+                    </div>
+                    <div class="alert alert-danger" th:if="${error}" th:text="${error}">
+                        정보 수정 중 오류가 발생했습니다.
+                    </div>
+
+                    <form th:action="@{/member/update}" method="post" th:object="${memberForm}">
+                        <!-- 아이디는 수정 불가 (읽기 전용) -->
+                        <div class="mb-3">
+                            <label for="memberId" class="form-label">아이디</label>
+                            <input type="text" class="form-control" id="memberId" th:field="*{memberId}" readonly>
+                            <small class="text-muted">아이디는 변경할 수 없습니다.</small>
+                        </div>
+
+                        <!-- 이름 -->
+                        <div class="mb-3">
+                            <label for="memberName" class="form-label">이름</label>
+                            <input type="text" class="form-control" id="memberName" th:field="*{memberName}" required maxlength="10">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('memberName')}" th:errors="*{memberName}">
+                                이름은 필수 항목입니다.
+                            </div>
+                        </div>
+
+                        <!-- 이메일 -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label">이메일</label>
+                            <input type="email" class="form-control" id="email" th:field="*{email}" required maxlength="100">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">
+                                올바른 이메일 형식이 아닙니다.
+                            </div>
+                        </div>
+
+                        <!-- 비밀번호 변경 섹션 -->
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="changePassword" name="changePassword" onchange="togglePasswordFields()">
+                                <label class="form-check-label" for="changePassword">
+                                    비밀번호 변경하기
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 현재 비밀번호 (비밀번호 변경 시 필수) -->
+                        <div class="mb-3 password-field" style="display: none;">
+                            <label for="currentPassword" class="form-label">현재 비밀번호</label>
+                            <input type="password" class="form-control" id="currentPassword" name="currentPassword">
+                            <div class="invalid-feedback" th:if="${currentPasswordError}" th:text="${currentPasswordError}">
+                                현재 비밀번호가 일치하지 않습니다.
+                            </div>
+                        </div>
+
+                        <!-- 새 비밀번호 -->
+                        <div class="mb-3 password-field" style="display: none;">
+                            <label for="newPassword" class="form-label">새 비밀번호</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword">
+                            <div class="invalid-feedback" th:if="${newPasswordError}" th:text="${newPasswordError}">
+                                비밀번호는 8자 이상이어야 합니다.
+                            </div>
+                        </div>
+
+                        <!-- 새 비밀번호 확인 -->
+                        <div class="mb-3 password-field" style="display: none;">
+                            <label for="confirmPassword" class="form-label">새 비밀번호 확인</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+                            <div class="invalid-feedback" th:if="${confirmPasswordError}" th:text="${confirmPasswordError}">
+                                비밀번호가 일치하지 않습니다.
+                            </div>
+                        </div>
+
+                        <!-- 버튼 -->
+                        <div class="d-flex justify-content-between mt-4">
+                            <a th:href="@{/myPage}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> 뒤로 가기
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> 저장하기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 포함 -->
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+<script>
+    function togglePasswordFields() {
+        const passwordFields = document.querySelectorAll('.password-field');
+        const changePassword = document.getElementById('changePassword').checked;
+
+        passwordFields.forEach(field => {
+            field.style.display = changePassword ? 'block' : 'none';
+
+            // 필드가 표시될 때만 필수로 설정
+            const inputs = field.querySelectorAll('input');
+            inputs.forEach(input => {
+                if (changePassword) {
+                    input.setAttribute('required', '');
+                } else {
+                    input.removeAttribute('required');
+                    input.value = ''; // 필드 숨길 때 값 초기화
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>

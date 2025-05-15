@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('회원가입')}">
+</head>
+<body>
+<!-- 네비게이션 바 -->
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">회원가입</h4>
+                </div>
+                <div class="card-body p-4">
+                    <!-- 오류 메시지 표시 -->
+                    <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                        <span th:text="${errorMessage}">오류 메시지</span>
+                    </div>
+
+                    <form action="/register" method="post" th:object="${member}" class="mx-auto">
+                        <div class="row justify-content-center">
+                            <!-- 기본 정보 -->
+                            <div class="col-md-8">
+                                <div class="mb-4">
+                                    <label for="memberId" class="form-label fw-bold">아이디 *</label>
+                                    <input type="text" class="form-control" id="memberId" name="memberId"
+                                           th:field="*{memberId}" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="password" class="form-label fw-bold">비밀번호 *</label>
+                                    <input type="password" class="form-control" id="password" name="password"
+                                           th:field="*{password}" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="memberName" class="form-label fw-bold">이름 *</label>
+                                    <input type="text" class="form-control" id="memberName" name="memberName"
+                                           th:field="*{memberName}" required>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="email" class="form-label fw-bold">이메일 *</label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           th:field="*{email}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4 form-check d-flex justify-content-center align-items-center gap-2">
+                            <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                            <label class="form-check-label" for="agreeTerms">이용약관 및 개인정보 처리방침에 동의합니다. *</label>
+                        </div>
+
+                        <div class="d-grid gap-2 col-md-8 mx-auto">
+                            <button type="submit" class="btn btn-primary btn-lg">가입하기</button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <p>이미 계정이 있으신가요? <a th:href="@{/login}" class="text-decoration-none">로그인</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<!-- 자바스크립트 -->
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

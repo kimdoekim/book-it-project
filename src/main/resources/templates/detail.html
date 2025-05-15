@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('도서 상세 정보')}">
+</head>
+<body>
+<!-- 네비게이션 바 -->
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="row">
+        <!-- 책 이미지 -->
+        <div class="col-md-4 mb-4">
+            <img th:src="${book.cover}" class="book-detail-cover" alt="책 표지">
+
+            <!-- 로그인한 경우에만 표시되는 버튼 -->
+            <div class="mt-3" sec:authorize="isAuthenticated()">
+                <button id="addToWishlist" class="btn btn-primary w-100 mb-2">
+                    <i class="bi bi-bookmark-plus"></i> 내 서재에 추가
+                </button>
+                <!-- 독서 진행 버튼 추가 -->
+                <button class="btn btn-outline-info w-100 mb-2" data-bs-toggle="modal" data-bs-target="#readingProgressModal">
+                    <i class="bi bi-book"></i> 독서 진행 상황 업데이트
+                </button>
+                <button id="addToPreferredCategory" class="btn btn-outline-success w-100 mb-2">
+                    <i class="bi bi-heart"></i> 이 장르를 선호 목록에 추가
+                </button>
+                <button class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                    <i class="bi bi-star"></i> 리뷰 작성하기
+                </button>
+            </div>
+
+            <!-- 독서 진행 상황 모달 추가 -->
+            <div class="modal fade" id="readingProgressModal" tabindex="-1" aria-labelledby="readingProgressModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="readingProgressModalLabel">독서 진행 상황 업데이트</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="readingProgressForm">
+                                <input type="hidden" id="bookId" name="bookId" th:value="${book.isbn13}">
+
+                                <div class="mb-3">
+                                    <label for="pagesRead" class="form-label">읽은 페이지 수</label>
+                                    <input type="number" class="form-control" id="pagesRead" name="pagesRead"
+                                           min="1" th:max="${book.itemPage != null ? book.itemPage : 999}" value="1">
+                                    <div class="form-text" th:if="${book.itemPage != null}">
+                                        총 <span th:text="${book.itemPage}">300</span>페이지 중 읽은 페이지 수를 입력하세요.
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="completed" name="completed">
+                                    <label class="form-check-label" for="completed">이 책을 완독했어요!</label>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                            <button type="button" class="btn btn-primary" id="submitReadingProgress">저장</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 책 정보 -->
+        <div class="col-md-8">
+            <h1 class="book-detail-title" th:text="${book.title}">책 제목</h1>
+            <p class="book-detail-author">
+                <span th:text="${book.author}">저자</span> |
+                <span th:text="${book.publisher}">출판사</span> |
+                <span th:text="${book.pubDate}">출판일</span>
+            </p>
+
+            <!-- 평점 정보 추가 -->
+            <div class="rating-info mb-3" th:if="${book.ratingScore != null}">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-star-fill text-warning me-1"></i>
+                    <span class="rating-score" th:text="${#numbers.formatDecimal(book.ratingScore, 1, 1)}">4.5</span>
+                    <span class="text-muted ms-2" th:if="${book.ratingCount != null}" th:text="'(' + ${book.ratingCount} + '명)'"></span>
+                </div>
+            </div>
+
+            <div class="book-detail-info">
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <strong>책 소개</strong>
+                    </div>
+                    <div class="card-body book-detail-description">
+                        <p th:utext="${book.description}">책 설명</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <strong>상세 정보</strong>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-info">
+                                <tr>
+                                    <th>ISBN</th>
+                                    <td th:text="${book.isbn13}">ISBN</td>
+                                </tr>
+                                <tr>
+                                    <th>정가</th>
+                                    <td th:text="${book.priceStandard + '원'}">가격</td>
+                                </tr>
+                                <tr>
+                                    <th>할인가</th>
+                                    <td th:text="${book.priceSales + '원'}">가격</td>
+                                </tr>
+                                <tr>
+                                    <th>페이지</th>
+                                    <td th:text="${book.itemPage != null ? book.itemPage + '쪽' : '정보 없음'}">페이지</td>
+                                </tr>
+                                <tr>
+                                    <th>카테고리</th>
+                                    <td th:text="${book.categoryName}">카테고리</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <strong>구매 정보</strong>
+                        </div>
+                        <div class="card-body">
+                            <a th:href="${book.link}" target="_blank" class="btn btn-success w-100 mb-2">
+                                <i class="bi bi-cart"></i> 알라딘에서 구매하기
+                            </a>
+                            <p class="small text-muted mt-2">
+                                * 외부 사이트로 이동합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 리뷰 작성 모달 -->
+        <div class="modal fade" id="reviewModal" tabindex="-1" aria-labelledby="reviewModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="reviewModalLabel">리뷰 작성하기</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="reviewForm" th:action="@{/review/add}" method="post">
+                            <input type="hidden" name="bookId" th:value="${book.isbn13}">
+                            <input type="hidden" name="bookTitle" th:value="${book.title}">
+                            <input type="hidden" name="bookCover" th:value="${book.cover}">
+
+                            <div class="mb-3">
+                                <label class="form-label">평점</label>
+                                <div class="star-rating">
+                                    <div class="stars">
+                                        <!-- 5개의 별로 표현 -->
+                                        <i class="bi bi-star" data-value="2.0"></i>
+                                        <i class="bi bi-star" data-value="4.0"></i>
+                                        <i class="bi bi-star" data-value="6.0"></i>
+                                        <i class="bi bi-star" data-value="8.0"></i>
+                                        <i class="bi bi-star" data-value="10.0"></i>
+                                    </div>
+                                    <div class="rating-value mt-2">
+                                        <span id="rating-display">0.0</span>점
+                                    </div>
+                                    <input type="hidden" name="rating" id="rating-input" value="" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="comment" class="form-label">한줄평</label>
+                                <textarea class="form-control" id="comment" name="comment" rows="3" maxlength="500" required></textarea>
+                                <div class="form-text">최대 500자까지 입력 가능합니다.</div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-primary" id="submitReview">리뷰 등록</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 리뷰 섹션 추가 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <strong>리뷰</strong>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal" sec:authorize="isAuthenticated()">
+                            <i class="bi bi-plus-circle"></i> 리뷰 작성
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <!-- 리뷰가 없는 경우 -->
+                        <div class="text-center py-4" th:if="${#lists.isEmpty(reviews)}">
+                            <p class="text-muted">아직 작성된 리뷰가 없습니다.</p>
+                        </div>
+
+                        <!-- 리뷰 목록 -->
+                        <div class="review-list" th:if="${!#lists.isEmpty(reviews)}">
+                            <div class="review-item border-bottom pb-3 mb-3" th:each="review : ${reviews}"
+                                 th:classappend="${#authentication != null && #authentication.isAuthenticated() && review.member != null && #authentication.principal.username == review.member.memberId} ? 'bg-light'">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <span class="fw-bold" th:text="${review.member.memberId}">사용자</span>
+                                        <span class="text-muted ms-2" th:text="${#temporals.format(review.createDate, 'yyyy.MM.dd')}">날짜</span>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rating me-2">
+                                            <span class="badge bg-primary" th:text="${'★ '+ review.rating}">★</span>
+                                        </div>
+                                        <!-- 본인 리뷰일 경우 삭제 버튼 표시 -->
+                                        <button class="btn btn-sm btn-outline-danger"
+                                                th:if="${#authentication != null && #authentication.isAuthenticated() && review.member != null && #authentication.principal.username == review.member.memberId}"
+                                                th:data-review-id="${review.id}"
+                                                onclick="deleteReview(this.getAttribute('data-review-id'))">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="review-comment mb-0" th:text="${review.comment}">리뷰 내용</p>
+                            </div>
+                        </div>
+
+                        <!-- 페이지네이션 (리뷰가 많을 경우) -->
+                        <div class="d-flex justify-content-center mt-4" th:if="${reviews != null && reviews.totalPages > 1}">
+                            <nav>
+                                <ul class="pagination">
+                                    <li class="page-item" th:classappend="${reviews.first} ? 'disabled'">
+                                        <a class="page-link" th:href="@{/detail/{id}(id=${book.isbn13}, page=0)}">&laquo;</a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${reviews.first} ? 'disabled'">
+                                        <a class="page-link" th:href="@{/detail/{id}(id=${book.isbn13}, page=${reviews.number-1})}">&lt;</a>
+                                    </li>
+                                    <li class="page-item" th:each="i : ${#numbers.sequence(0, reviews.totalPages-1)}"
+                                        th:classappend="${i == reviews.number} ? 'active'">
+                                        <a class="page-link" th:href="@{/detail/{id}(id=${book.isbn13}, page=${i})}" th:text="${i+1}">1</a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${reviews.last} ? 'disabled'">
+                                        <a class="page-link" th:href="@{/detail/{id}(id=${book.isbn13}, page=${reviews.number+1})}">&gt;</a>
+                                    </li>
+                                    <li class="page-item" th:classappend="${reviews.last} ? 'disabled'">
+                                        <a class="page-link" th:href="@{/detail/{id}(id=${book.isbn13}, page=${reviews.totalPages-1})}">&raquo;</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<style>
+    .star-rating .stars {
+        display: flex;
+        font-size: 2.5rem;
+        color: #ccc;
+        cursor: pointer;
+    }
+
+    .star-rating .stars i {
+        margin-right: 0.5rem;
+    }
+
+    .star-rating .stars i.bi-star-fill {
+        color: #ffc107;
+    }
+
+    .star-rating .stars i.bi-star-half {
+        color: #ffc107;
+    }
+
+    .star-rating .rating-value {
+        margin-top: 0.5rem;
+        font-weight: bold;
+    }
+</style>
+
+<!-- 자바스크립트 -->
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:inline="javascript">
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const categoryId = /*[[${book.categoryId}]]*/ 0;
+        const categoryName = /*[[${book.categoryName} ]]*/ 0;
+
+        /*<![CDATA[*/
+        const bookId = /*[[${book.isbn13}]]*/ '';
+        const bookTitle = /*[[${book.title}]]*/ '';
+        const bookAuthor = /*[[${book.author}]]*/ '';
+        const bookCoverUrl = /*[[${book.cover}]]*/ '';
+        const bookPublisher = /*[[${book.publisher}]]*/ '';
+        const bookPrice = /*[[${book.priceSales}]]*/ 0;
+        /*]]>*/
+
+        // 위시리스트 추가 버튼
+        document.getElementById('addToWishlist').addEventListener('click', function() {
+            fetch('/wishlist/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bookId: bookId,
+                    title: bookTitle,
+                    author: bookAuthor,
+                    coverUrl: bookCoverUrl,
+                    publisher: bookPublisher,
+                    price: bookPrice
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    alert('내 서재에 추가되었습니다.');
+                } else {
+                    alert('이미 내 서재에 추가된 도서입니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+        });
+
+
+
+        const stars = document.querySelectorAll('.star-rating .stars i');
+        const ratingInput = document.getElementById('rating-input');
+        const ratingDisplay = document.getElementById('rating-display');
+
+        stars.forEach((star, index) => {
+            // 별 영역에 마우스 움직임
+            star.addEventListener('mousemove', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const width = rect.width;
+
+                // 별의 왼쪽 절반인지 오른쪽 절반인지 확인
+                const isLeftHalf = x < width / 2;
+
+                // 선택한 별 이전의 모든 별은 채우기
+                for (let i = 0; i < index; i++) {
+                    stars[i].className = 'bi bi-star-fill';
+                }
+
+                // 현재 별은 왼쪽 절반이면 반별, 오른쪽 절반이면 채운 별
+                this.className = isLeftHalf ? 'bi bi-star-half' : 'bi bi-star-fill';
+
+                // 현재 별 이후의 모든 별은 빈 별
+                for (let i = index + 1; i < stars.length; i++) {
+                    stars[i].className = 'bi bi-star';
+                }
+
+                // 점수 계산 (2.0 ~ 10.0, 0.5 단위)
+                let value;
+                if (isLeftHalf) {
+                    value = 1.0 + index * 2; // 2.0, 4.0, 6.0, 8.0, 10.0
+                } else {
+                    value = 2.0 + index * 2; // 3.0, 5.0, 7.0, 9.0, (11.0이 아닌 10.0으로 제한)
+                    if (value > 10.0) value = 10.0; // 마지막 별의 오른쪽은 10.0으로 제한
+                }
+
+                ratingDisplay.textContent = value.toFixed(1);
+            });
+
+            // 별 클릭 이벤트
+            star.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const width = rect.width;
+
+                const isLeftHalf = x < width / 2;
+
+                // 점수 계산 (2.0 ~ 10.0, 0.5 단위)
+                let value;
+                if (isLeftHalf) {
+                    value = 2.0 + index * 2; // 2.0, 4.0, 6.0, 8.0, 10.0
+                } else {
+                    value = 3.0 + index * 2; // 3.0, 5.0, 7.0, 9.0, (11.0이 아닌 10.0으로 제한)
+                    if (value > 10.0) value = 10.0; // 마지막 별의 오른쪽은 10.0으로 제한
+                }
+
+                ratingInput.value = value;
+                ratingDisplay.textContent = value.toFixed(1);
+
+                // 별 상태 업데이트
+                updateStarsForValue(value);
+            });
+        });
+
+        // 마우스가 별점 영역을 벗어났을 때
+        document.querySelector('.star-rating .stars').addEventListener('mouseleave', function() {
+            const value = ratingInput.value ? parseFloat(ratingInput.value) : 0;
+            updateStarsForValue(value);
+            ratingDisplay.textContent = value ? value.toFixed(1) : '0.0';
+        });
+
+        function updateStarsForValue(value) {
+            // 별 개수로 변환 (1개당 2점, 반별은 1점)
+            const fullStars = Math.floor(value / 2);
+            const hasHalfStar = value % 2 !== 0;
+
+            stars.forEach((star, i) => {
+                if (i < fullStars) {
+                    star.className = 'bi bi-star-fill'; // 완전히 채운 별
+                } else if (i === fullStars && hasHalfStar) {
+                    star.className = 'bi bi-star-half'; // 반 별
+                } else {
+                    star.className = 'bi bi-star'; // 빈 별
+                }
+            });
+        }
+
+
+        // 선호 장르 추가 버튼
+        document.getElementById('addToPreferredCategory').addEventListener('click', function() {
+            fetch('/preference/category/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                <!--                    'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]').getAttribute('content')-->
+                },
+                body: JSON.stringify({
+                    categoryId: categoryId,
+                    categoryName: categoryName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    alert('선호 장르에 추가되었습니다.');
+                } else {
+                    alert('이미 선호 장르에 추가된 카테고리입니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+        });
+
+        // 리뷰 제출 버튼
+        document.getElementById('submitReview').addEventListener('click', function() {
+            document.getElementById('reviewForm').submit();
+        });
+
+         // 독서 진행 완독 체크박스 클릭 시 자동으로 최대 페이지로 설정
+        document.getElementById('completed').addEventListener('change', function() {
+            const pagesReadInput = document.getElementById('pagesRead');
+            const maxPages = /*[[${book.itemPage != null ? book.itemPage : 999}]]*/ 300;
+
+            if (this.checked) {
+                pagesReadInput.value = maxPages;
+            }
+        });
+
+        // 페이지 수 변경 시 완독 여부 자동 체크/해제
+        document.getElementById('pagesRead').addEventListener('change', function() {
+            const completedCheckbox = document.getElementById('completed');
+            const maxPages = /*[[${book.itemPage != null ? book.itemPage : 999}]]*/ 300;
+
+            if (parseInt(this.value) >= maxPages) {
+                completedCheckbox.checked = true;
+            } else {
+                completedCheckbox.checked = false;
+            }
+        });
+
+        // 독서 진행 상황 제출
+        document.getElementById('submitReadingProgress').addEventListener('click', function() {
+            const bookId = document.getElementById('bookId').value;
+            const pagesRead = document.getElementById('pagesRead').value;
+            const completed = document.getElementById('completed').checked;
+
+            // AJAX 요청
+            fetch('/api/reading-progress', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'bookId': bookId,
+                    'pagesRead': pagesRead,
+                    'completed': completed
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('독서 진행 상황 업데이트에 실패했습니다.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // 모달 닫기
+                const modal = bootstrap.Modal.getInstance(document.getElementById('readingProgressModal'));
+                modal.hide();
+
+                // 성공 메시지 표시
+                alert('독서 진행 상황이 업데이트되었습니다.');
+
+                // 완독했을 경우 페이지 리로드 (목표 달성 확인 등을 위해)
+                if (completed) {
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message);
+            });
+        });
+    });
+
+
+    // 리뷰 삭제 함수
+    function deleteReview(reviewId) {
+        if (confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
+            fetch(`/review/delete/${reviewId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('리뷰가 삭제되었습니다.');
+                    // 페이지 새로고침하여 UI 업데이트
+                    window.location.reload();
+                } else {
+                    alert(data.message || '리뷰 삭제에 실패했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+        }
+    }
+</script>
+</body>
+</html>

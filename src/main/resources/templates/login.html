@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('로그인')}">
+</head>
+<body>
+<!-- 네비게이션 바 -->
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">로그인</h4>
+                </div>
+                <div class="card-body">
+                    <!-- 오류 메시지 표시 -->
+                    <div th:if="${loginError}" class="alert alert-danger" role="alert">
+                        <span th:text="${loginError}">로그인 오류</span>
+                    </div>
+
+                    <!-- 회원가입 성공 메시지 -->
+                    <div th:if="${successMessage}" class="alert alert-success" role="alert">
+                        <span th:text="${successMessage}">성공 메시지</span>
+                    </div>
+
+                    <form action="/login" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">아이디</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="mb-3 text-end">
+                            <a href="#" class="text-decoration-none small">비밀번호 찾기</a>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">로그인</button>
+                        </div>
+                    </form>
+
+                    <div class="mt-3 text-center">
+                        <p>계정이 없으신가요? <a th:href="@{/register}" class="text-decoration-none">회원가입</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<!-- 자바스크립트 -->
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+    <head th:replace="~{fragments/layout :: head('마이페이지')}">
+    </head>
+<body>
+<!-- 헤더 포함 -->
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 th:text="${user.memberName} + '님의 마이페이지'">사용자님의 마이페이지</h2>
+        <a href="/member/edit" class="btn btn-outline-primary">
+            <i class="bi bi-pencil-square"></i> 개인정보 수정
+        </a>
+    </div>
+
+
+    <!-- 위시리스트 (내 서재) -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">내 서재</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" th:if="${#lists.isEmpty(wishlist)}">
+                <i class="bi bi-info-circle"></i> 아직 내 서재에 추가한 책이 없습니다.
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4" th:unless="${#lists.isEmpty(wishlist)}">
+                <div class="col" th:each="book : ${wishlist}">
+                    <div class="card h-100 shadow-sm">
+                        <div class="text-center pt-3">
+                            <img th:src="${book.coverUrl}" class="card-img-top" alt="책 표지" style="height: 200px; width: auto; object-fit: contain;">
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title" th:text="${book.title}">책 제목</h6>
+                            <p class="card-text text-muted small" th:text="${book.author}">저자</p>
+                            <p class="card-text text-muted small" th:text="${book.publisher}">출판사</p>
+                        </div>
+                        <div class="card-footer bg-white d-flex justify-content-between">
+                            <a th:href="@{'/detail/' + ${book.bookId}}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-book"></i> 상세보기
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger"
+                                    th:onclick="'removeFromWishlist(' + ${book.id} + ')'">
+                                <i class="bi bi-trash"></i> 삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 내 리뷰 -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">내 리뷰</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" th:if="${#lists.isEmpty(reviews)}">
+                <i class="bi bi-info-circle"></i> 작성한 리뷰가 없습니다.
+            </div>
+
+            <div class="list-group" th:unless="${#lists.isEmpty(reviews)}">
+                <div class="list-group-item p-3 mb-2" th:each="review : ${reviews}">
+                    <div class="row align-items-center">
+                        <div class="col-md-2 text-center mb-3 mb-md-0">
+                            <img th:src="${review.cover}" alt="책 표지" style="max-height: 150px; max-width: 100%; object-fit: contain;">
+                        </div>
+                        <div class="col-md-10">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h6 class="mb-1 fw-bold" th:text="${review.bookTitle}">책 제목</h6>
+                                <div>
+                                    <span class="badge bg-warning text-dark" th:text="${review.rating} + ' / 10.0'">9.5 / 10.0</span>
+                                    <small class="text-muted ms-2" th:text="${#temporals.format(review.createDate, 'yyyy-MM-dd')}">2025-03-15</small>
+                                </div>
+                            </div>
+                            <p class="mb-3" th:text="${review.comment}">리뷰 내용입니다...</p>
+                            <div class="d-flex justify-content-end align-items-center">
+                                <a th:href="@{'/detail/' + ${review.bookId}}" class="btn btn-sm btn-outline-primary me-2">
+                                    <i class="bi bi-book"></i> 도서 보기
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        th:onclick="'deleteReview(' + ${review.id} + ')'">
+                                    <i class="bi bi-trash"></i> 삭제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 관심 장르 -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">관심 장르</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" th:if="${#lists.isEmpty(categories)}">
+                <i class="bi bi-info-circle"></i> 아직 선택한 관심 장르가 없습니다.
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-3" th:unless="${#lists.isEmpty(categories)}">
+                <div class="badge bg-primary p-2 d-flex align-items-center" th:each="category : ${categories}">
+                    <span th:text="${category.categoryName}">소설</span>
+                    <a th:href="@{/preference/category/remove(categoryId=${category.id})}"
+                       class="ms-2 text-white"
+                       onclick="return confirm('이 관심 장르를 제거하시겠습니까?');">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </div>
+            </div>
+
+            <p class="text-muted small">
+                <i class="bi bi-info-circle"></i>
+                도서 상세 페이지에서 "관심 장르 추가" 버튼을 통해 선호하는 장르를 추가할 수 있습니다.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 포함 -->
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function removeFromWishlist(wishlistId) {
+        if (confirm('정말로 내 서재에서 삭제하시겠습니까?')) {
+            fetch('/wishlist/remove/' + wishlistId, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('내 서재에서 삭제되었습니다.');
+                    window.location.reload();
+                } else {
+                    alert(data.message || '삭제 중 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+        }
+    }
+
+    function deleteReview(reviewId) {
+        if (confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
+            fetch('/review/delete/' + reviewId, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('리뷰가 삭제되었습니다.');
+                    window.location.reload();
+                } else {
+                    alert(data.message || '삭제 중 오류가 발생했습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('오류가 발생했습니다. 다시 시도해주세요.');
+            });
+        }
+    }
+    /*]]>*/
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>나의 독서 목표</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>나의 독서 목표</h2>
+            <div>
+                <a th:href="@{/reading-goals/create}" class="btn btn-primary">새 목표 설정</a>
+                <a th:href="@{/reading-goals/history}" class="btn btn-outline-secondary">목표 이력</a>
+                <a th:href="@{/reading-goals/badges}" class="btn btn-outline-secondary">획득한 뱃지</a>
+            </div>
+        </div>
+
+        <!-- 활성화된 목표가 없는 경우 -->
+        <div th:if="${#lists.isEmpty(activeGoals)}" class="alert alert-info">
+            <p>현재 설정된 독서 목표가 없습니다. 새로운 목표를 설정해보세요!</p>
+            <a th:href="@{/reading-goals/create}" class="btn btn-primary mt-2">목표 설정하기</a>
+        </div>
+
+        <!-- 활성화된 목표 목록 -->
+        <div th:if="${not #lists.isEmpty(activeGoals)}" class="row">
+            <div th:each="goal : ${activeGoals}" class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <h5 th:text="${goal.period.displayName + ' 독서 목표'}">월간 독서 목표</h5>
+                        <span th:if="${goal.completed}" class="badge bg-success">완료</span>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            <span th:text="${#temporals.format(goal.startDate, 'yyyy-MM-dd')}">2023-01-01</span> ~
+                            <span th:text="${#temporals.format(goal.endDate, 'yyyy-MM-dd')}">2023-01-31</span>
+                        </h6>
+                        <p class="card-text">
+                            <span th:text="${goal.type.displayName}">책 수</span>
+                            <strong th:text="${goal.currentValue}">5</strong> /
+                            <span th:text="${goal.targetValue}">10</span>
+                        </p>
+
+                        <!-- 진행률 표시 -->
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar"
+                                 th:style="'width: ' + ${goalProgress.get(goal.id)} + '%'"
+                                 th:aria-valuenow="${goalProgress.get(goal.id)}"
+                                 aria-valuemin="0" aria-valuemax="100">
+                                <span th:text="${#numbers.formatDecimal(goalProgress.get(goal.id), 0, 1) + '%'}">50%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

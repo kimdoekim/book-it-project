@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('검색 결과')}">
+</head>
+<body>
+<!-- 네비게이션 바 -->
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container my-5">
+    <h2 class="mb-4">
+        <span th:text="${param.searchWord}"></span>
+        <small class="text-muted">에 대한 검색 결과</small>
+        <span class="badge bg-primary rounded-pill" th:text="${bookList.totalResults + '건'}"></span>
+    </h2>
+
+    <!-- 검색 결과가 없을 경우 -->
+    <div class="alert alert-info" th:if="${#lists.isEmpty(bookList.bookList)}">
+        <i class="bi bi-info-circle"></i> 검색 결과가 없습니다. 다른 검색어로 시도해보세요.
+    </div>
+
+    <!-- 검색 결과 리스트 -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:if="${!#lists.isEmpty(bookList.bookList)}">
+        <div class="col" th:each="book : ${bookList.bookList}">
+            <div class="card h-100 shadow-sm book-card">
+                <div class="row g-0">
+                    <div class="col-4">
+                        <img th:src="${book.cover}" class="img-fluid rounded-start h-100 w-100 object-fit-cover"
+                             th:onclick="|location.href='@{/detail/{itemId}(itemId=${book.isbn13})}'|"
+                             style="cursor: pointer; object-fit: contain; padding: 10px; max-height: 200px;" alt="책 표지">
+                    </div>
+                    <div class="col-8">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a th:href="@{/detail/{itemId}(itemId=${book.isbn13})}"
+                                   class="text-decoration-none stretched-link search-item-title" th:text="${book.title}">책 제목</a>
+                            </h5>
+                            <p class="card-text mb-1">
+                                <small class="text-muted" th:text="${book.author}">저자</small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted" th:text="${book.pubDate}">출판일</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <nav th:if="${bookList.totalPages > 1}" aria-label="검색 결과 페이지" class="mt-5">
+        <ul class="pagination justify-content-center">
+            <!-- 이전 페이지 버튼 -->
+            <li class="page-item" th:classappend="${bookList.currentPage <= 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/search(searchWord=${searchWord}, page=${bookList.currentPage - 1})}"
+                   aria-label="이전">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+
+            <!-- 페이지 번호 리스트 -->
+            <li class="page-item" th:each="i : ${#numbers.sequence(bookList.startPage, bookList.endPage)}"
+                th:classappend="${i == bookList.currentPage ? 'active' : ''}">
+                <a class="page-link" th:href="@{/search(searchWord=${searchWord}, page=${i})}" th:text="${i}"></a>
+            </li>
+
+            <!-- 다음 페이지 버튼 -->
+            <li class="page-item" th:classappend="${bookList.currentPage >= bookList.totalPages ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/search(searchWord=${searchWord}, page=${bookList.currentPage + 1})}"
+                   aria-label="다음">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 검색창 -->
+    <div class="card mt-5">
+        <div class="card-body">
+            <h5 class="card-title">다른 책 검색하기</h5>
+            <form th:action="@{/search}" method="get" class="mt-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="searchWord" th:value="${param.searchWord}"
+                           placeholder="책 제목, 저자, ISBN으로 검색">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i> 검색
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<!-- 자바스크립트 -->
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+<style>
+    .book-card {
+        transition: transform 0.2s ease;
+    }
+    .book-card:hover {
+        transform: translateY(-5px);
+    }
+    .page-link {
+        color: #3f51b5;
+    }
+    .page-item.active .page-link {
+        background-color: #3f51b5;
+        border-color: #3f51b5;
+    }
+    .badge {
+        vertical-align: middle;
+    }
+    .search-item-title{
+        color:#479292
+    }
+</style>
+</body>
+</html>
